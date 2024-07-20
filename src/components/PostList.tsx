@@ -8,16 +8,24 @@ import Paper from '@mui/material/Paper';
 import { Post } from '../types';
 
 interface PostListProps {
-    posts: Post[];
+    posts: Post[] | undefined;
 }
 
 const PostList: React.FC<PostListProps> = ({ posts }) => {
+    if (!posts || posts.length === 0) {
+        return (
+            <Typography variant="h6" component="div">
+                No posts available.
+            </Typography>
+        );
+    }
+
     return (
         <Box>
             {posts.map(post => (
-                <Paper key={post.id} sx={{ marginBottom: 2, padding: 2 }}>
+                <Paper key={post._id} sx={{ marginBottom: 2, padding: 2 }}>
                     <Link href={`/posts/${post._id}`} passHref>
-                        <Typography variant="h5" component="div" sx={{ cursor: 'pointer', textDecoration: 'none', color: 'inherit' }}>
+                        <Typography variant="h5" sx={{ cursor: 'pointer', textDecoration: 'none', color: 'inherit' }}>
                             {post.title}
                         </Typography>
                     </Link>

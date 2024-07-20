@@ -41,7 +41,7 @@ const Navbar = () => {
                 </Link>
             </ListItem>
             {categories.map((category) => (
-                <ListItem button key={category.id}>
+                <ListItem button key={category._id}>
                     <Link href={`/?category=${category.name}`} passHref>
                         <ListItemText primary={category.name} />
                     </Link>

@@ -10,11 +10,14 @@ import Grid from '@mui/material/Grid';
 import CssBaseline from '@mui/material/CssBaseline';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
+import Pagination from '@mui/material/Pagination';
 import { Post } from '../types';
 
 const HomePage = () => {
-    const [posts, setPosts] = useState<Post[]>([]);
+    const [posts, setPosts] = useState<Post[] | undefined>(undefined);
     const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
     const searchParams = useSearchParams();
     const category = searchParams.get('category') || 'All';
 
@@ -23,8 +26,13 @@ const HomePage = () => {
             setLoading(true);
             try {
                 const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/posts`, {
-                    params: { category: category === 'All' ? undefined : category }
+                    params: {
+                        category: category === 'All' ? undefined : category,
+                        limit: 10,
+                        page
+                    }
                 });
+                console.log('Fetched posts:', response.data);
                 setPosts(response.data);
             } catch (error) {
                 console.error('Error fetching posts:', error);
@@ -33,8 +41,28 @@ const HomePage = () => {
             }
         };
 
+        const fetchTotalPages = async () => {
+            try {
+                const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/posts/totalPages`, {
+                    params: {
+                        category: category === 'All' ? undefined : category,
+                        limit: 10,
+                    }
+                });
+                console.log('Total pages:', response.data.totalPages);
+                setTotalPages(response.data.totalPages);
+            } catch (error) {
+                console.error('Error fetching total pages:', error);
+            }
+        };
+
         fetchPosts();
-    }, [category]);
+        fetchTotalPages();
+    }, [category, page]);
+
+    const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+        setPage(value);
+    };
 
     return (
         <Box
@@ -68,7 +96,14 @@ const HomePage = () => {
                                 <CircularProgress />
                             </Box>
                         ) : (
-                            <PostList posts={posts} />
+                            <>
+                                <PostList posts={posts} />
+                                {posts && posts.length > 0 && (
+                                    <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 2 }}>
+                                        <Pagination count={totalPages} page={page} onChange={handlePageChange} />
+                                    </Box>
+                                )}
+                            </>
                         )}
                     </Grid>
                 </Grid>
