@@ -1,40 +1,58 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { useSearchParams } from 'next/navigation';
 import Navbar from '../components/Navbar';
 import PostList from '../components/PostList';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import CssBaseline from '@mui/material/CssBaseline';
-import Typography from '@mui/material/Typography'; // Import Typography component
-import postsData from '../data/postsData';
+import Typography from '@mui/material/Typography';
+import CircularProgress from '@mui/material/CircularProgress';
+import { Post } from '../types';
 
 const HomePage = () => {
+    const [posts, setPosts] = useState<Post[]>([]);
+    const [loading, setLoading] = useState(true);
     const searchParams = useSearchParams();
     const category = searchParams.get('category') || 'All';
 
-    const filteredPosts = category === 'All'
-        ? postsData
-        : postsData.filter(post => post.category === category);
+    useEffect(() => {
+        const fetchPosts = async () => {
+            setLoading(true);
+            try {
+                const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/posts`, {
+                    params: { category: category === 'All' ? undefined : category }
+                });
+                setPosts(response.data);
+            } catch (error) {
+                console.error('Error fetching posts:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchPosts();
+    }, [category]);
 
     return (
         <Box
             sx={{
                 display: 'flex',
-                justifyContent: 'center', // Center horizontally
-                padding: '20px', // Optional padding for better look
+                justifyContent: 'center',
+                padding: '20px',
             }}
         >
             <CssBaseline />
             <Box
                 sx={{
                     width: '100%',
-                    maxWidth: '960px', // Set maximum width to make it narrower
-                    backgroundColor: '#ffffff', // Optional background color
-                    boxShadow: '0px 0px 15px rgba(0, 0, 0, 0.1)', // Optional shadow for better look
-                    borderRadius: '8px', // Optional rounded corners
-                    padding: '20px', // Optional padding inside the container
+                    maxWidth: '960px',
+                    backgroundColor: '#ffffff',
+                    boxShadow: '0px 0px 15px rgba(0, 0, 0, 0.1)',
+                    borderRadius: '8px',
+                    padding: '20px',
                 }}
             >
                 <Grid container spacing={2}>
@@ -45,7 +63,13 @@ const HomePage = () => {
                         <Typography variant="h5" component="h1" gutterBottom>
                             {category === 'All' ? 'All Posts' : `${category} Posts`}
                         </Typography>
-                        <PostList posts={filteredPosts} />
+                        {loading ? (
+                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                                <CircularProgress />
+                            </Box>
+                        ) : (
+                            <PostList posts={posts} />
+                        )}
                     </Grid>
                 </Grid>
             </Box>
