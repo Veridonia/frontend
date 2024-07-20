@@ -1,0 +1,30 @@
+body {
+  margin: 0;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+}
+
+.container {
+  display: flex;
+}
+
+.navbar {
+  width: 20%;
+  background-color: #f4f4f4;
+  padding: 20px;
+}
+
+.main-content {
+  width: 80%;
+  padding: 20px;
+}
+
+nav ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+nav ul li {
+  margin: 10px 0;
+  cursor: pointer;
+  color: #0070f3;
+}
