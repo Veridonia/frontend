@@ -22,8 +22,7 @@ const PostDetail = () => {
             try {
                 const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/posts/${id}`);
                 setPost(response.data);
-                const categoryResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/categories/${response.data.category}`);
-                setCategory(categoryResponse.data.name);
+                setCategory(response.data.category.name);
             } catch (error) {
                 console.error('Error fetching post or category:', error);
             } finally {

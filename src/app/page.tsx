@@ -32,7 +32,6 @@ const HomePage = () => {
                         page
                     }
                 });
-                console.log('Fetched posts:', response.data);
                 setPosts(response.data);
             } catch (error) {
                 console.error('Error fetching posts:', error);
@@ -49,7 +48,6 @@ const HomePage = () => {
                         limit: 10,
                     }
                 });
-                console.log('Total pages:', response.data.totalPages);
                 setTotalPages(response.data.totalPages);
             } catch (error) {
                 console.error('Error fetching total pages:', error);
