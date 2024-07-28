@@ -6,13 +6,31 @@ export interface Category {
     deletedAt?: Date | null;
 }
 
+export interface Session {
+    sessionId: string;
+    username: string;
+    isGuest: boolean;
+    createdAt: Date;
+    updatedAt?: Date;
+    deletedAt?: Date | null;
+    ipAddress: string;
+  }
+
 export interface Post {
     _id: any;
     title: string;
     content: string;
-    author: string;
-    category: Category | string;
+    category: Category;
+    session: Session;
+    expiresAt?: Date;
     createdAt?: Date;
     updatedAt?: Date;
     deletedAt?: Date | null;
 }
+export interface CreatePostDto {
+    title: string;
+    content: string;
+    sessionId: string;
+    categoryId: string;
+    expiresAt?: string; // ISO string format for dates
+  }

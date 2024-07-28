@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 import PostList from './posts/PostList';
@@ -10,19 +10,36 @@ import CssBaseline from '@mui/material/CssBaseline';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 import Pagination from '@mui/material/Pagination';
-import { Post } from '../types';
+import { Category, Post } from '../types';
+import { fetchPosts, fetchTotalPages } from '@/utils/fetchers';
 
 interface HomePageProps {
   initialPosts: Post[];
   initialPage: number;
-  totalPages: number;
-  category: string;
+  initialTotalPages: number;
+  category?: Category;
+  categories: Category[]
 }
 
-const HomePage: React.FC<HomePageProps> = ({ initialPosts, initialPage, totalPages, category }) => {
+const HomePage: React.FC<HomePageProps> = ({ initialPosts, initialPage, initialTotalPages, category, categories }) => {
   const [posts, setPosts] = useState<Post[]>(initialPosts);
+  const [totalPages, setTotalPages] = useState(initialTotalPages)
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(initialPage);
+
+  useEffect(() => {
+    const update = async () => {
+      const [posts, totalPages] = await Promise.all([
+        fetchPosts(category?.name || '', page),
+        fetchTotalPages(category?.name || '')
+      ]);
+
+      setPosts(posts)
+      setTotalPages(totalPages)
+    }
+
+    update()
+  }, [category, page])
 
   const handlePageChange = async (event: React.ChangeEvent<unknown>, value: number) => {
     setPage(value);
@@ -30,7 +47,7 @@ const HomePage: React.FC<HomePageProps> = ({ initialPosts, initialPage, totalPag
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/posts`, {
         params: {
-          category: category === 'All' ? undefined : category,
+          category: category?.name === 'All' ? undefined : category,
           limit: 10,
           page: value
         }
@@ -64,11 +81,11 @@ const HomePage: React.FC<HomePageProps> = ({ initialPosts, initialPage, totalPag
       >
         <Grid container spacing={2}>
           <Grid item xs={12} md={3}>
-            <Navbar />
+            <Navbar initialCategories={categories} initialCategory={category} />
           </Grid>
           <Grid item xs={12} md={9}>
             <Typography variant="h5" component="h1" gutterBottom>
-              {category === 'All' ? 'All Posts' : `${category} Posts`}
+              {category?.name === 'All' ? 'All Posts' : `${category?.name} Posts`}
             </Typography>
             {loading ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>

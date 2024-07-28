@@ -1,6 +1,7 @@
 // app/page.tsx
-import HomePage from '@/app/HomePage';
-import { fetchPosts, fetchTotalPages } from '@/utils/fetchers';
+import HomePage from "@/app/HomePage";
+import { Category } from "@/types";
+import { fetchCategories, fetchPosts, fetchTotalPages } from "@/utils/fetchers";
 
 interface PageProps {
   searchParams: {
@@ -10,15 +11,24 @@ interface PageProps {
 }
 
 export default async function Page({ searchParams }: PageProps) {
-  const category = searchParams.category || '';
-  const page = parseInt(searchParams.page || '1', 10);
+  const categoryName = searchParams.category || "";
+  const page = parseInt(searchParams.page || "1", 10);
+
+  const categories: Category[] = await fetchCategories();
+  const category = categories.find((one) => one.name === categoryName);
 
   const [initialPosts, totalPages] = await Promise.all([
-    fetchPosts(category, page),
-    fetchTotalPages(category)
+    fetchPosts(category?.name || '', page),
+    fetchTotalPages(category?.name || ''),
   ]);
 
   return (
-    <HomePage initialPosts={initialPosts} initialPage={page} totalPages={totalPages} category={category} />
+    <HomePage
+      initialPosts={initialPosts}
+      initialPage={page}
+      initialTotalPages={totalPages}
+      category={category}
+      categories={categories}
+    />
   );
 }

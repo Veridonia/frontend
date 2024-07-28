@@ -59,7 +59,7 @@ const PostDetail: React.FC<PostDetailProps> = ({ post, error }) => {
           {post.content}
         </Typography>
         <Typography variant="subtitle1" color="textSecondary">
-          By {post.author}
+          By {post.session.username}
         </Typography>
         <Typography variant="caption" color="textSecondary">
           {new Date(post.createdAt!).toLocaleDateString()}

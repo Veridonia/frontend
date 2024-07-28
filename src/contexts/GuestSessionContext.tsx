@@ -1,6 +1,11 @@
 "use client";
 import React, { createContext, useState, useContext, useEffect, ReactNode } from "react";
 import Cookies from "js-cookie";
+import {
+  startGuestSession as startGuestSessionRequest,
+  endGuestSession as endGuestSessionRequest,
+  checkGuestSession as checkGuestSessionRequest,
+} from "@/utils/fetchers";
 
 interface GuestSessionContextProps {
   isGuest: boolean;
@@ -28,53 +33,54 @@ export const GuestSessionProvider: React.FC<{ children: ReactNode }> = ({ childr
   }, [isGuest]);
 
   const startGuestSession = async () => {
-    const response = await fetch("/api/session", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-    });
-    if (response.ok) {
-      const { data } = await response.json();
+    try {
+      const { data } = await startGuestSessionRequest();
       Cookies.set("sessionId", data.sessionId);
       setIsGuest(true);
       setUsername(data.username);
       setSessionId(data.sessionId);
+    } catch (error) {
+      console.error("Failed to start guest session", error);
     }
   };
 
   const endGuestSession = async () => {
     const sessionId = Cookies.get("sessionId");
 
-    const response = await fetch(`/api/session/${sessionId}`, {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-    });
-    if (response.ok) {
+    if(!sessionId) {
+      console.error('There is no session to end')
+      return;
+    }
+
+    try {
+      await endGuestSessionRequest(sessionId);
       Cookies.remove("sessionId");
       setIsGuest(false);
       setUsername("");
       setSessionId("");
+    } catch (error) {
+      console.error("Failed to end guest session", error);
     }
   };
 
   const checkGuestSession = async () => {
     const sessionId = Cookies.get("sessionId");
 
-    const response = await fetch(`/api/session/${sessionId}`, {
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-    });
-    if (response.ok) {
-      const { data } = await response.json();
+    if(!sessionId) {
+      console.error('There is no session to check')
+      return;
+    }
+
+    try {
+      const { data } = await checkGuestSessionRequest(sessionId);
       if (data.isGuest) {
         setIsGuest(true);
         setUsername(data.username);
         setSessionId(data.sessionId);
-
         return;
       }
+    } catch (error) {
+      console.error("Failed to check guest session", error);
     }
 
     setIsGuest(false);
