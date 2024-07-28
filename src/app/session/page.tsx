@@ -1,11 +1,10 @@
-'use client';
-
+"use client"
 import { useGuestSession } from '@/contexts/GuestSessionContext';
 import { useSession } from 'next-auth/react';
 
 const HomePage: React.FC = () => {
   const { data: session, status } = useSession();
-  const { isGuest, startGuestSession, endGuestSession } = useGuestSession();
+  const { isGuest, username, startGuestSession, endGuestSession } = useGuestSession();
 
   if (status === 'loading') return <p>Loading...</p>;
 
@@ -16,7 +15,7 @@ const HomePage: React.FC = () => {
   if (isGuest) {
     return (
       <div>
-        <p>You are browsing as a guest.</p>
+        <p>You are browsing as a guest. Your name is {username}</p>
         <button onClick={endGuestSession}>End Guest Session</button>
       </div>
     );

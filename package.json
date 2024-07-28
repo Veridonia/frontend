@@ -11,7 +11,7 @@
   "dependencies": {
     "@emotion/react": "^11.13.0",
     "@emotion/styled": "^11.13.0",
-    "@mui/icons-material": "^5.16.4",
+    "@mui/icons-material": "^5.16.5",
     "@mui/material": "^5.16.4",
     "axios": "^1.7.2",
     "dotenv": "^16.4.5",
@@ -19,6 +19,7 @@
     "js-cookie": "^3.0.5",
     "next": "14.2.5",
     "next-auth": "^4.24.7",
+    "node-fetch": "^3.3.2",
     "react": "^18",
     "react-dom": "^18"
   },
