@@ -6,6 +6,16 @@ export interface Category {
     deletedAt?: Date | null;
 }
 
+export interface SelectedCategory {
+    _id: any;
+    sessionId: string;
+    categoryId: string;
+    category: Category;
+    createdAt?: Date;
+    updatedAt?: Date;
+    deletedAt?: Date | null;
+}
+
 export interface Session {
     sessionId: string;
     username: string;

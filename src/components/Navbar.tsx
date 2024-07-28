@@ -7,33 +7,42 @@ import Divider from '@mui/material/Divider';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import { useRouter } from 'next/navigation'; // Using 'next/navigation' for App Router
-import { Category } from '../types';
-import { fetchCategories } from '../utils/fetchers';
+import { Category, SelectedCategory } from '../types';
+import { fetchCategories, fetchSelectedCategories, addSelectedCategory } from '../utils/fetchers';
 import PostModal from './PostModal'; // Import the new PostModal component
+import CategorySelectModal from './CategorySelectModal'; // Import the new CategorySelectModal component
+import { useGuestSession } from '@/contexts/GuestSessionContext';
+import { ListItemButton } from '@mui/material';
 
 interface NavbarProps {
-    initialCategory?: Category;
-    initialCategories: Category[];
+    initialSelectedCategory?: SelectedCategory;
+    initialSelectedCategories?: SelectedCategory[];
 }
 
-const Navbar: React.FC<NavbarProps> = ({ initialCategories, initialCategory }) => {
-    const [categories, setCategories] = useState<Category[]>(initialCategories);
+const Navbar: React.FC<NavbarProps> = ({ initialSelectedCategories, initialSelectedCategory }) => {
+    const [selectedCategories, setSelectedCategories] = useState<SelectedCategory[]>(initialSelectedCategories || []);
     const [open, setOpen] = useState(false);
-    const [selectedCategory, setSelectedCategory] = useState<Category | undefined>(initialCategory);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState<SelectedCategory | undefined>(initialSelectedCategory);
     const router = useRouter();
+    const { isGuest, sessionId } = useGuestSession();
+    const [currentCategory, setCurrentCategory] = useState(selectedCategory?.category)
+    const [categoryAdded, setCategoryAdded] = useState(false)
 
     useEffect(() => {
-        const loadCategories = async () => {
-            try {
-                const categoriesData = await fetchCategories();
-                setCategories(categoriesData);
-            } catch (error) {
-                console.error('Error loading categories:', error);
+        const logic = async () => {
+            if(!sessionId) {
+                return;
             }
-        };
+            const selectedCategories: SelectedCategory[] = await fetchSelectedCategories(sessionId)
+            const selectedCategory = selectedCategories.find(one => one.category.name === currentCategory?.name) as SelectedCategory
 
-        loadCategories();
-    }, [selectedCategory]);
+            setSelectedCategories(selectedCategories)
+            setSelectedCategory(selectedCategory)
+            setCategoryAdded(false)
+        }
+        logic();
+    }, [sessionId, categoryAdded])
 
     const handleOpen = () => {
         setOpen(true);
@@ -43,10 +52,25 @@ const Navbar: React.FC<NavbarProps> = ({ initialCategories, initialCategory }) =
         setOpen(false);
     };
 
-    const handleCategoryClick = (category?: Category) => {
-        setSelectedCategory(category);
-        router.push(`/?category=${category?.name === 'All' ? '' : category?.name}`);
+    const handleModalOpen = () => {
+        setModalOpen(true);
     };
+
+    const handleModalClose = () => {
+        setModalOpen(false);
+        setCategoryAdded(false)
+    };
+
+    const handleCategoryClick = (selectedCategory: SelectedCategory) => {
+        setSelectedCategory(selectedCategory);
+        setCurrentCategory(selectedCategory.category)
+        router.push(`/?category=${selectedCategory?.category.name}`);
+    };
+
+    const handleCategorySelect = (selectedCategory: SelectedCategory) => {
+        setCurrentCategory(selectedCategory.category)
+        setCategoryAdded(true)
+    }
 
     return (
         <>
@@ -59,28 +83,22 @@ const Navbar: React.FC<NavbarProps> = ({ initialCategories, initialCategory }) =
                     </ListSubheader>
                 }
             >
-                <ListItem
-                    button
-                    key="All"
-                    selected={selectedCategory?.name === 'All'}
-                    onClick={() => handleCategoryClick(selectedCategory)}
-                >
-                    <ListItemText primary="All" />
-                </ListItem>
-                {categories.map((category) => (
-                    <ListItem
-                        button
-                        key={category._id}
-                        selected={selectedCategory?.name === category.name}
-                        onClick={() => handleCategoryClick(category)}
+                {selectedCategories.map((oneSelectedCategory) => (
+                    <ListItemButton
+                        key={oneSelectedCategory.category._id}
+                        selected={oneSelectedCategory?.category?.name === currentCategory?.name}
+                        onClick={() => handleCategoryClick(oneSelectedCategory)}
                     >
-                        <ListItemText primary={category.name} />
-                    </ListItem>
+                        <ListItemText primary={oneSelectedCategory.category.name} />
+                    </ListItemButton>
                 ))}
+                <ListItem button onClick={handleModalOpen}>
+                    <ListItemText primary="Add..." />
+                </ListItem>
                 <Divider sx={{ my: 2 }} />
                 <Box sx={{ textAlign: 'left', my: 2, mx: 2 }}>
-                    <Button variant="contained" color="primary" onClick={() => handleOpen()}>
-                        Post
+                    <Button disabled={!selectedCategory} variant="contained" color="primary" onClick={() => handleOpen()}>
+                        Publish
                     </Button>
                 </Box>
             </List>
@@ -88,7 +106,13 @@ const Navbar: React.FC<NavbarProps> = ({ initialCategories, initialCategory }) =
             <PostModal
                 open={open}
                 handleClose={handleClose}
-                category={selectedCategory}
+                selectedCategory={selectedCategory}
+            />
+
+            <CategorySelectModal
+                open={modalOpen}
+                onClose={handleModalClose}
+                onCategorySelect={handleCategorySelect}
             />
         </>
     );

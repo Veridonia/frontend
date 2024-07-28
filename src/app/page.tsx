@@ -1,7 +1,8 @@
 // app/page.tsx
 import HomePage from "@/app/HomePage";
-import { Category } from "@/types";
-import { fetchCategories, fetchPosts, fetchTotalPages } from "@/utils/fetchers";
+import { Category, SelectedCategory } from "@/types";
+import { fetchCategories, fetchPosts, fetchSelectedCategories, fetchTotalPages } from "@/utils/fetchers";
+import { cookies } from "next/headers";
 
 interface PageProps {
   searchParams: {
@@ -11,24 +12,40 @@ interface PageProps {
 }
 
 export default async function Page({ searchParams }: PageProps) {
-  const categoryName = searchParams.category || "";
+  let categoryName = searchParams.category || '';
+  let selectedCategories: SelectedCategory[] = [];
+  let selectedCategory;
+  let initialPosts;
+  let totalPages = 1;
   const page = parseInt(searchParams.page || "1", 10);
+  const cookieStore = cookies();
+  const sessionId = cookieStore.get('sessionId')?.value || '';
 
-  const categories: Category[] = await fetchCategories();
-  const category = categories.find((one) => one.name === categoryName);
+  if(sessionId){
+    selectedCategories = await fetchSelectedCategories(sessionId);
+    if(categoryName) {
+      selectedCategory = selectedCategories.find(one => one.category.name === categoryName) as SelectedCategory;
+    }
+    if(!selectedCategory) {
+      selectedCategory = selectedCategories[0];
+      categoryName = selectedCategory?.category?.name;
+    }
+  }
 
-  const [initialPosts, totalPages] = await Promise.all([
-    fetchPosts(category?.name || '', page),
-    fetchTotalPages(category?.name || ''),
-  ]);
+  if(categoryName) {
+    [initialPosts, totalPages] = await Promise.all([
+        fetchPosts(categoryName, page),
+        fetchTotalPages(categoryName),
+      ]);
+  }
 
   return (
     <HomePage
       initialPosts={initialPosts}
       initialPage={page}
       initialTotalPages={totalPages}
-      category={category}
-      categories={categories}
+      initialSelectedCategory={selectedCategory}
+      initialSelectedCategories={selectedCategories}
     />
   );
 }

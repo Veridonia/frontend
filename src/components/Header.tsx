@@ -1,24 +1,26 @@
-import React, { useState } from 'react';
-import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
-import Link from 'next/link';
-import Box from '@mui/material/Box';
-import IconButton from '@mui/material/IconButton';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import Avatar from '@mui/material/Avatar';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import { useSession } from 'next-auth/react';
-import { useGuestSession } from '@/contexts/GuestSessionContext';
-import ChangeUsernameModal from './ChangeUsernameModal';
+import React, { useState } from "react";
+import AppBar from "@mui/material/AppBar";
+import Toolbar from "@mui/material/Toolbar";
+import Typography from "@mui/material/Typography";
+import Link from "next/link";
+import Box from "@mui/material/Box";
+import IconButton from "@mui/material/IconButton";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import Avatar from "@mui/material/Avatar";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import { useSession } from "next-auth/react";
+import { useGuestSession } from "@/contexts/GuestSessionContext";
+import ChangeUsernameModal from "./ChangeUsernameModal";
+import { useRouter } from 'next/navigation';
 
 const Header: React.FC = () => {
   const { data: session, status } = useSession();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const router = useRouter();
 
-  const { isGuest, sessionId, username, startGuestSession, endGuestSession, checkGuestSession } = useGuestSession();
+  const { isGuest, sessionId, username, endGuestSession, checkGuestSession } = useGuestSession();
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -28,9 +30,10 @@ const Header: React.FC = () => {
     setAnchorEl(null);
   };
 
-  const handleChangeSession = () => {
-    endGuestSession();
+  const handleChangeSession = async () => {
+    await endGuestSession();
     handleMenuClose();
+    router.push(`/`);
   };
 
   const handleOpenModal = () => {
@@ -40,26 +43,25 @@ const Header: React.FC = () => {
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    checkGuestSession()
+    checkGuestSession();
   };
 
   const isMenuOpen = Boolean(anchorEl);
 
   return (
     <>
-      <AppBar position="static" sx={{ backgroundColor: 'transparent', boxShadow: 'none', borderBottom: '1px solid #ccc' }}>
-        <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Link href="/" passHref style={{ textDecoration: 'none', color: 'black' }}>
-            <Typography variant="h4" sx={{ cursor: 'pointer', textDecoration: 'none', color: 'black' }}>
+      <AppBar
+        position="static"
+        sx={{ backgroundColor: "transparent", boxShadow: "none", borderBottom: "1px solid #ccc" }}
+      >
+        <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+          <Link href="/" passHref style={{ textDecoration: "none", color: "black" }}>
+            <Typography variant="h4" sx={{ cursor: "pointer", textDecoration: "none", color: "black" }}>
               Veridonia
             </Typography>
           </Link>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            {isGuest && (
-              <Typography sx={{ marginRight: 2, color: 'black' }}>
-                {username}
-              </Typography>
-            )}
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            {isGuest && <Typography sx={{ marginRight: 2, color: "black" }}>{username}</Typography>}
             <IconButton
               edge="end"
               aria-label="account of current user"
@@ -74,14 +76,16 @@ const Header: React.FC = () => {
             </IconButton>
             <Menu
               anchorEl={anchorEl}
-              anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+              anchorOrigin={{ vertical: "top", horizontal: "right" }}
               keepMounted
-              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+              transformOrigin={{ vertical: "top", horizontal: "right" }}
               open={isMenuOpen}
               onClose={handleMenuClose}
             >
+              <MenuItem disabled>Guest Session</MenuItem>
               <MenuItem onClick={handleOpenModal}>Change Username</MenuItem>
               <MenuItem onClick={handleChangeSession}>End Session</MenuItem>
+              {/* <MenuItem>Sign In</MenuItem> */}
             </Menu>
           </Box>
         </Toolbar>

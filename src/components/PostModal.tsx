@@ -4,7 +4,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers';
 import { createPost } from '@/utils/fetchers';
-import { Category, CreatePostDto } from '@/types';
+import { Category, CreatePostDto, SelectedCategory } from '@/types';
 import { useGuestSession } from '@/contexts/GuestSessionContext';
 
 const style = {
@@ -22,10 +22,10 @@ const style = {
 interface PostModalProps {
     open: boolean;
     handleClose: () => void;
-    category?: Category;
+    selectedCategory?: SelectedCategory;
 }
 
-const PostModal: React.FC<PostModalProps> = ({ open, handleClose, category }) => {
+const PostModal: React.FC<PostModalProps> = ({ open, handleClose, selectedCategory }) => {
     const [postTitle, setPostTitle] = useState('');
     const [postContent, setPostContent] = useState('');
     const [expirationDate, setExpirationDate] = useState<Date | null>(null);
@@ -41,7 +41,7 @@ const PostModal: React.FC<PostModalProps> = ({ open, handleClose, category }) =>
           title: postTitle,
           content: postContent,
           sessionId,
-          categoryId: category?._id,
+          categoryId: selectedCategory?.category?._id,
           expiresAt: expirationDate?.toISOString(), // Convert to ISO string
         };
         try {
@@ -63,7 +63,7 @@ const PostModal: React.FC<PostModalProps> = ({ open, handleClose, category }) =>
                 <h2 id="modal-modal-title">Create a Post</h2>
                 <TextField
                     label="Category"
-                    value={category?.name}
+                    value={selectedCategory?.category.name}
                     fullWidth
                     margin="normal"
                     disabled

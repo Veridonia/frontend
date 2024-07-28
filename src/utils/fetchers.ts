@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Category, CreatePostDto, Post } from "../types";
+import { Category, CreatePostDto, Post, SelectedCategory } from "../types";
 
 export async function fetchPosts(categoryName: string, page: number): Promise<Post[]> {
   const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/posts`, {
@@ -40,6 +40,26 @@ export const fetchCategories = async (): Promise<Category[]> => {
     throw error;
   }
 };
+
+export const fetchSelectedCategories = async (sessionId: string): Promise<SelectedCategory[]> => {
+  try {
+    const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/selected-categories/${sessionId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching selected categories:", error);
+    throw error;
+  }
+};
+
+export const addSelectedCategory = async (sessionId: string, categoryId: string) => {
+  const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/selected-categories`, { sessionId, categoryId });
+  return response.data;
+};
+
+export const removeSelectedCategory = async (selectedCategoryId: string) => {
+    const response = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/selected-categories/${selectedCategoryId}`);
+    return response.data;
+  };
 
 export const createPost = async (createPostDto: CreatePostDto) => {
   try {
